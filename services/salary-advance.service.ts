@@ -19,3 +19,13 @@ export const approveSalaryAdvance = async (id: string, status: "APPROVED" | "REJ
   const response = await api.patch(`/salary-advances/${id}/approve`, { status, remarks });
   return response.data;
 };
+
+export const updateSalaryAdvance = async (id: string, payload: Record<string, unknown>) => {
+  const response = await api.put(`/salary-advances/${id}`, payload);
+  return response.data;
+};
+
+export const deleteSalaryAdvance = async (id: string) => {
+  const response = await api.delete(`/salary-advances/${id}`);
+  return response.data;
+};

@@ -18,3 +18,14 @@ export interface LoginResponse {
     };
   };
 }
+
+export interface UserProfile {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "SUPER_ADMIN" | "ADMIN" | "HR" | "EMPLOYEE";
+  isActive: boolean;
+  createdAt?: string;
+  lastLoginAt?: string;
+}

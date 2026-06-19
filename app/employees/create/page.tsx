@@ -4,24 +4,32 @@ import { useRouter } from "next/navigation";
 
 import EmployeeForm from "@/components/employees/employee-form";
 
-import { createEmployee } from "@/services/employee.service";
+import { createEmployee, uploadEmployeePhoto } from "@/services/employee.service";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { EmployeeFormValues } from "@/app/schemas/employee.schema";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 export default function CreateEmployeePage() {
   const router = useRouter();
 
-  const handleCreate = async (values: EmployeeFormValues) => {
+  const handleCreate = async (values: EmployeeFormValues, photo?: File) => {
     try {
-      await createEmployee(values);
+      const response = await createEmployee(values);
+      const employeeId = response?.data?._id;
+      if (photo && employeeId) {
+        try {
+          await uploadEmployeePhoto(employeeId, photo);
+        } catch (photoError) {
+          toast.warning(getApiErrorMessage(photoError, "Employee created, but the photo could not be uploaded."));
+        }
+      }
 
       toast.success("Employee created successfully");
       router.push("/employees");
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(message || "Failed to create employee");
+      toast.error(getApiErrorMessage(error, "We could not create the employee. Please review the form and try again."));
       throw error;
     }
   };

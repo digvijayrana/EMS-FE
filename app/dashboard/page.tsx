@@ -16,25 +16,29 @@ const money = (value = 0) => new Intl.NumberFormat("en-IN", { style: "currency",
 
 export default function DashboardPage() {
   const employeesQuery = useQuery({ queryKey: ["employees", "dashboard"], queryFn: () => getEmployees({ limit: 100 }) });
-  const attendanceQuery = useQuery({ queryKey: ["attendance", "dashboard"], queryFn: () => getAttendance({ limit: 100 }) });
+  const today = new Date().toLocaleDateString("en-CA");
+  const attendanceQuery = useQuery({ queryKey: ["attendance", "dashboard", today], queryFn: () => getAttendance({ fromDate: today, toDate: today, limit: 500 }) });
   const leavesQuery = useQuery({ queryKey: ["leaves", "dashboard"], queryFn: () => getLeaves({ limit: 5 }) });
+  const pendingLeavesQuery = useQuery({ queryKey: ["leaves", "dashboard", "pending"], queryFn: () => getLeaves({ status: "PENDING", limit: 1 }) });
   const payrollQuery = useQuery({ queryKey: ["payroll-statistics"], queryFn: () => getPayrollStatistics() });
 
-  if ([employeesQuery, attendanceQuery, leavesQuery, payrollQuery].some((query) => query.isLoading)) return <PageLoader label="Preparing your workspace..." />;
-  if ([employeesQuery, attendanceQuery, leavesQuery, payrollQuery].some((query) => query.isError)) return <ErrorState />;
+  if ([employeesQuery, attendanceQuery, leavesQuery, pendingLeavesQuery, payrollQuery].some((query) => query.isLoading)) return <PageLoader label="Preparing your workspace..." />;
+  if ([employeesQuery, attendanceQuery, leavesQuery, pendingLeavesQuery, payrollQuery].some((query) => query.isError)) return <ErrorState />;
 
   const employees: Employee[] = employeesQuery.data?.data?.employees || [];
   const attendance: AttendanceRecord[] = attendanceQuery.data?.data?.data || [];
   const leaves: LeaveRecord[] = leavesQuery.data?.data?.data || [];
   const payroll = payrollQuery.data?.data || {};
-  const today = new Date().toDateString();
-  const todayRecords = attendance.filter((item) => new Date(item.attendanceDate).toDateString() === today);
-  const present = todayRecords.filter((item) => item.status === "PRESENT").length;
-  const pendingLeaves = leaves.filter((item) => item.status === "PENDING").length;
+  const todayRecords = attendance;
+  const present = attendanceQuery.data?.data?.total
+    ? todayRecords.filter((item) => item.status === "PRESENT").length
+    : 0;
+  const pendingLeaves = pendingLeavesQuery.data?.data?.total || 0;
+  const employeeTotal = employeesQuery.data?.data?.pagination?.total || employees.length;
   const employeeMap = new Map(employees.map((item) => [item._id, `${item.firstName} ${item.lastName}`]));
 
   const cards = [
-    { label: "Total employees", value: employees.length, note: `${employees.filter((e) => e.status === "ACTIVE").length} active team members`, icon: Users, color: "from-indigo-500 to-violet-600" },
+    { label: "Total employees", value: employeeTotal, note: `${employees.filter((e) => e.status === "ACTIVE").length} active team members`, icon: Users, color: "from-indigo-500 to-violet-600" },
     { label: "Present today", value: present, note: `${todayRecords.length} attendance records today`, icon: CalendarCheck, color: "from-emerald-500 to-teal-600" },
     { label: "Pending leaves", value: pendingLeaves, note: "Requests awaiting review", icon: Clock3, color: "from-amber-500 to-orange-500" },
     { label: "Payroll due", value: money(payroll.totalRemainingAmount), note: `${payroll.totalPayrolls || 0} payroll records`, icon: CircleDollarSign, color: "from-fuchsia-500 to-pink-600" },

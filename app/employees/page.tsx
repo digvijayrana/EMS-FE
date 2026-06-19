@@ -52,7 +52,7 @@ export default function EmployeesPage() {
               <tbody className="divide-y">
                 {employees.map((employee) => (
                   <tr key={employee._id} className="transition hover:bg-muted/35">
-                    <td className="px-5 py-4"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 font-bold text-white">{employee.firstName[0]}{employee.lastName[0]}</span><div><p className="font-semibold">{employee.firstName} {employee.lastName}</p><p className="mt-0.5 text-xs text-muted-foreground">{employee.employeeCode}</p></div></div></td>
+                    <td className="px-5 py-4"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 bg-cover bg-center font-bold text-white" style={employee.photoUrl ? { backgroundImage: `url("${employee.photoUrl}")` } : undefined}>{!employee.photoUrl && <>{employee.firstName[0]}{employee.lastName[0]}</>}</span><div><p className="font-semibold">{employee.firstName} {employee.lastName}</p><p className="mt-0.5 text-xs text-muted-foreground">{employee.employeeCode}</p></div></div></td>
                     <td className="px-5 py-4"><p>{employee.phone}</p><p className="mt-0.5 text-xs text-muted-foreground">{employee.email || "No email"}</p></td>
                     <td className="px-5 py-4 text-muted-foreground">{employee.joiningDate ? new Date(employee.joiningDate).toLocaleDateString("en-IN") : "—"}</td>
                     <td className="px-5 py-4 font-semibold">{money(employee.salary)}</td>

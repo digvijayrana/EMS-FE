@@ -24,3 +24,13 @@ export const cancelLeave = async (id: string) => {
   const response = await api.patch(`/leaves/${id}/cancel`);
   return response.data;
 };
+
+export const updateLeave = async (id: string, payload: Record<string, unknown>) => {
+  const response = await api.put(`/leaves/${id}`, payload);
+  return response.data;
+};
+
+export const deleteLeave = async (id: string) => {
+  const response = await api.delete(`/leaves/${id}`);
+  return response.data;
+};

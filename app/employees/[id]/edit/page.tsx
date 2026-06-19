@@ -10,12 +10,14 @@ import EmployeeForm from "@/components/employees/employee-form";
 import {
   getEmployeeById,
   updateEmployee,
+  uploadEmployeePhoto,
 } from "@/services/employee.service";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { PageLoader } from "@/components/shared/page-state";
 import type { EmployeeFormValues } from "@/app/schemas/employee.schema";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 export default function EditEmployeePage() {
   const params = useParams();
@@ -30,18 +32,20 @@ export default function EditEmployeePage() {
 
   const employee = data?.data;
 
-  const handleUpdate = async (values: EmployeeFormValues) => {
+  const handleUpdate = async (values: EmployeeFormValues, photo?: File) => {
     try {
       await updateEmployee(
         params.id as string,
         values
       );
+      if (photo) {
+        await uploadEmployeePhoto(params.id as string, photo);
+      }
 
       toast.success("Employee updated successfully");
       router.push("/employees");
     } catch (error: unknown) {
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(message || "Update failed");
+      toast.error(getApiErrorMessage(error, "We could not update the employee. Please review the form and try again."));
       throw error;
     }
   };
@@ -88,15 +92,45 @@ export default function EditEmployeePage() {
             employee?.gender ||
             "MALE",
 
+          maritalStatus:
+            employee?.maritalStatus ||
+            "SINGLE",
+
+          dateOfBirth:
+            employee?.dateOfBirth
+              ?.split("T")[0] || "",
+
           status:
             employee?.status ||
             "ACTIVE",
 
           overtimeRatePerHour: employee?.overtimeRatePerHour ||
             0,
+
+          departmentId: employee?.departmentId || "",
+
+          designationId: employee?.designationId || "",
+
+          bankDetails: {
+            accountHolderName: employee?.bankDetails?.accountHolderName || "",
+            accountNumber: employee?.bankDetails?.accountNumber || "",
+            ifscCode: employee?.bankDetails?.ifscCode || "",
+            bankName: employee?.bankDetails?.bankName || "",
+            branchName: employee?.bankDetails?.branchName || "",
+          },
+
+          address: {
+            line1: employee?.address?.line1 || "",
+            line2: employee?.address?.line2 || "",
+            city: employee?.address?.city || "",
+            state: employee?.address?.state || "",
+            country: employee?.address?.country || "India",
+            pincode: employee?.address?.pincode || "",
+          },
         }}
         onSubmit={handleUpdate}
         submitLabel="Save changes"
+        defaultPhotoUrl={employee?.photoUrl}
       />
     </div>
   );

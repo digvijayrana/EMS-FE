@@ -19,3 +19,13 @@ export const markPayrollPayment = async (id: string, paidAmount: number) => {
   const response = await api.patch(`/payroll/${id}/payment`, { paidAmount });
   return response.data;
 };
+
+export const getPayrollById = async (id: string) => {
+  const response = await api.get(`/payroll/${id}`);
+  return response.data;
+};
+
+export const deletePayroll = async (id: string) => {
+  const response = await api.delete(`/payroll/${id}`);
+  return response.data;
+};

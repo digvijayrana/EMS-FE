@@ -25,3 +25,12 @@ export const deleteEmployee = async (id: string) => {
     const response = await api.delete(`/employees/${id}`);
     return response.data;
 };
+
+export const uploadEmployeePhoto = async (id: string, photo: File) => {
+    const formData = new FormData();
+    formData.append("photo", photo);
+    const response = await api.patch(`/employees/${id}/photo`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+};
