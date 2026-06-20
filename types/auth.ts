@@ -15,6 +15,8 @@ export interface LoginResponse {
       lastName: string;
       email: string;
       role: string;
+      employeeId?: string;
+      mustChangePassword?: boolean;
     };
   };
 }
@@ -28,4 +30,6 @@ export interface UserProfile {
   isActive: boolean;
   createdAt?: string;
   lastLoginAt?: string;
+  employeeId?: string;
+  mustChangePassword?: boolean;
 }

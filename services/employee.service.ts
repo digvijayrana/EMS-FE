@@ -34,3 +34,17 @@ export const uploadEmployeePhoto = async (id: string, photo: File) => {
     });
     return response.data;
 };
+
+export const uploadAadhaarDocument = async (id: string, document: File) => {
+    const formData = new FormData();
+    formData.append("document", document);
+    const response = await api.patch(`/employees/${id}/aadhaar-document`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+};
+
+export const inviteEmployee = async (id: string) => {
+    const response = await api.post(`/employees/${id}/invite`);
+    return response.data;
+};

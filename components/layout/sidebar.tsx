@@ -12,6 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMemo, useSyncExternalStore } from "react";
 
 export const menus = [
   { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -38,10 +39,21 @@ export function Brand() {
 
 export function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const storedUser = useSyncExternalStore(
+    (callback) => { window.addEventListener("storage", callback); return () => window.removeEventListener("storage", callback); },
+    () => localStorage.getItem("user") || "{}",
+    () => "{}",
+  );
+  const role = useMemo(() => {
+    try { return JSON.parse(storedUser).role as string | undefined; } catch { return undefined; }
+  }, [storedUser]);
+  const visibleMenus = role === "EMPLOYEE"
+    ? [{ title: "My profile", href: "/profile", icon: Users }]
+    : menus;
 
   return (
     <nav className="space-y-1.5">
-      {menus.map(({ title, href, icon: Icon }) => {
+      {visibleMenus.map(({ title, href, icon: Icon }) => {
         const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
         return (
           <Link

@@ -17,6 +17,8 @@ export interface Employee {
   joiningDate: string;
 
   photoUrl?: string;
+  aadhaarDocumentUrl?: string;
+  userId?: string;
 
   status: "ACTIVE" | "INACTIVE";
 

@@ -3,17 +3,26 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, BadgeIndianRupee, Building2, CalendarDays, CreditCard, Mail, MapPin, Pencil, Phone, UserRound } from "lucide-react";
+import { ArrowLeft, BadgeIndianRupee, Building2, CalendarDays, CreditCard, Mail, MapPin, Pencil, Phone, Send, UserRound } from "lucide-react";
 import { getEmployeeById } from "@/services/employee.service";
 import { StatusPill } from "@/components/shared/status-pill";
 import { ErrorState, PageLoader } from "@/components/shared/page-state";
 import type { Employee } from "@/types/employee";
+import { inviteEmployee } from "@/services/employee.service";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 const money = (value = 0) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
 
 export default function EmployeeDetailsPage() {
   const params = useParams<{ id: string }>();
   const query = useQuery({ queryKey: ["employee", params.id], queryFn: () => getEmployeeById(params.id) });
+  const invite = useMutation({
+    mutationFn: (employeeId: string) => inviteEmployee(employeeId),
+    onSuccess: () => toast.success("Login invitation sent"),
+    onError: (error) => toast.error(getApiErrorMessage(error, "Unable to send login invitation.")),
+  });
   if (query.isLoading) return <PageLoader label="Loading employee profile..." />;
   if (query.isError || !query.data?.data) return <ErrorState message="Unable to load this employee." />;
   const employee: Employee = query.data.data;
@@ -30,7 +39,7 @@ export default function EmployeeDetailsPage() {
   ];
 
   return <div className="mx-auto max-w-6xl space-y-6">
-    <div className="flex items-center justify-between"><Link href="/employees" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Employees</Link><Link href={`/employees/${employee._id}/edit`} className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"><Pencil className="size-4" /> Edit profile</Link></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><Link href="/employees" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Employees</Link><div className="flex gap-2"><button onClick={() => invite.mutate(employee._id)} disabled={invite.isPending || !employee.email} className="inline-flex h-10 items-center gap-2 rounded-xl border bg-card px-4 text-sm font-semibold disabled:opacity-50"><Send className="size-4" /> {invite.isPending ? "Sending..." : "Send login invite"}</button><Link href={`/employees/${employee._id}/edit`} className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"><Pencil className="size-4" /> Edit profile</Link></div></div>
     <section className="overflow-hidden rounded-3xl border bg-card/90 shadow-xl shadow-slate-900/5">
       <div className="h-36 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500" />
       <div className="px-5 pb-6 sm:px-8">
@@ -48,6 +57,7 @@ export default function EmployeeDetailsPage() {
       <div className="space-y-6">
         <section className="glass-card p-5"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600"><BadgeIndianRupee className="size-5" /></span><div><p className="font-bold">Compensation</p><p className="text-xs text-muted-foreground">Salary and overtime</p></div></div><div className="mt-5 space-y-3 text-sm"><div className="flex justify-between"><span className="text-muted-foreground">Base salary</span><span className="font-semibold">{money(employee.salary)}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Overtime / hour</span><span className="font-semibold">{money(employee.overtimeRatePerHour)}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Allowed leaves</span><span className="font-semibold">{employee.allowedLeaves} days</span></div></div></section>
         <section className="glass-card p-5"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-violet-500/10 text-violet-600"><MapPin className="size-5" /></span><div><p className="font-bold">Address</p><p className="text-xs text-muted-foreground">Current residence</p></div></div><p className="mt-5 text-sm leading-6 text-muted-foreground">{employee.address ? [employee.address.line1, employee.address.line2, employee.address.city, employee.address.state, employee.address.pincode].filter(Boolean).join(", ") : "No address has been added yet."}</p></section>
+        <section className="glass-card p-5"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-amber-500/10 text-amber-600"><CreditCard className="size-5" /></span><div><p className="font-bold">Aadhaar verification</p><p className="text-xs text-muted-foreground">Identity document</p></div></div><div className="mt-5"><p className="text-sm font-semibold">{employee.aadhaarNumber}</p>{employee.aadhaarDocumentUrl ? <a href={employee.aadhaarDocumentUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">View Aadhaar image</a> : <p className="mt-2 text-sm text-muted-foreground">No Aadhaar image uploaded.</p>}</div></section>
         <section className="glass-card p-5"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-sky-500/10 text-sky-600"><Building2 className="size-5" /></span><div><p className="font-bold">Bank details</p><p className="text-xs text-muted-foreground">Salary account</p></div></div>{employee.bankDetails?.accountNumber ? <div className="mt-5 space-y-2 text-sm"><div className="flex justify-between gap-4"><span className="text-muted-foreground">Account holder</span><span className="text-right font-semibold">{employee.bankDetails.accountHolderName || "—"}</span></div><div className="flex justify-between gap-4"><span className="text-muted-foreground">Account number</span><span className="font-semibold">•••• {employee.bankDetails.accountNumber.slice(-4)}</span></div><div className="flex justify-between gap-4"><span className="text-muted-foreground">IFSC</span><span className="font-semibold">{employee.bankDetails.ifscCode || "—"}</span></div><div className="flex justify-between gap-4"><span className="text-muted-foreground">Bank</span><span className="text-right font-semibold">{[employee.bankDetails.bankName, employee.bankDetails.branchName].filter(Boolean).join(", ") || "—"}</span></div></div> : <p className="mt-5 text-sm text-muted-foreground">No bank details have been added yet.</p>}</section>
       </div>
     </div>

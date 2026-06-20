@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import EmployeeForm from "@/components/employees/employee-form";
 
-import { createEmployee, uploadEmployeePhoto } from "@/services/employee.service";
+import { createEmployee, uploadAadhaarDocument, uploadEmployeePhoto } from "@/services/employee.service";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -14,7 +14,7 @@ import { getApiErrorMessage } from "@/lib/api-error";
 export default function CreateEmployeePage() {
   const router = useRouter();
 
-  const handleCreate = async (values: EmployeeFormValues, photo?: File) => {
+  const handleCreate = async (values: EmployeeFormValues, photo?: File, aadhaarDocument?: File) => {
     try {
       const response = await createEmployee(values);
       const employeeId = response?.data?._id;
@@ -23,6 +23,13 @@ export default function CreateEmployeePage() {
           await uploadEmployeePhoto(employeeId, photo);
         } catch (photoError) {
           toast.warning(getApiErrorMessage(photoError, "Employee created, but the photo could not be uploaded."));
+        }
+      }
+      if (aadhaarDocument && employeeId) {
+        try {
+          await uploadAadhaarDocument(employeeId, aadhaarDocument);
+        } catch (documentError) {
+          toast.warning(getApiErrorMessage(documentError, "Employee created, but the Aadhaar image could not be uploaded."));
         }
       }
 

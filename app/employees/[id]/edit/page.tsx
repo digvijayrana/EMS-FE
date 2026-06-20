@@ -11,6 +11,7 @@ import {
   getEmployeeById,
   updateEmployee,
   uploadEmployeePhoto,
+  uploadAadhaarDocument,
 } from "@/services/employee.service";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -32,7 +33,7 @@ export default function EditEmployeePage() {
 
   const employee = data?.data;
 
-  const handleUpdate = async (values: EmployeeFormValues, photo?: File) => {
+  const handleUpdate = async (values: EmployeeFormValues, photo?: File, aadhaarDocument?: File) => {
     try {
       await updateEmployee(
         params.id as string,
@@ -40,6 +41,9 @@ export default function EditEmployeePage() {
       );
       if (photo) {
         await uploadEmployeePhoto(params.id as string, photo);
+      }
+      if (aadhaarDocument) {
+        await uploadAadhaarDocument(params.id as string, aadhaarDocument);
       }
 
       toast.success("Employee updated successfully");
@@ -131,6 +135,7 @@ export default function EditEmployeePage() {
         onSubmit={handleUpdate}
         submitLabel="Save changes"
         defaultPhotoUrl={employee?.photoUrl}
+        defaultAadhaarDocumentUrl={employee?.aadhaarDocumentUrl}
       />
     </div>
   );

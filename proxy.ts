@@ -3,13 +3,13 @@ import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
   const token = request.cookies.get("accessToken")?.value;
-  const isLogin = request.nextUrl.pathname === "/login";
+  const isPublicAuth = ["/login", "/forgot-password", "/reset-password"].includes(request.nextUrl.pathname);
 
-  if (!token && !isLogin) {
+  if (!token && !isPublicAuth) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (token && isLogin) {
+  if (token && request.nextUrl.pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -17,5 +17,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/employees/:path*", "/attendance/:path*", "/leaves/:path*", "/payroll/:path*", "/salary-advance/:path*", "/profile/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/employees/:path*", "/attendance/:path*", "/leaves/:path*", "/payroll/:path*", "/salary-advance/:path*", "/profile/:path*", "/login", "/forgot-password", "/reset-password"],
 };

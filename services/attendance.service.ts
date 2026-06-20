@@ -19,3 +19,11 @@ export const deleteAttendance = async (id: string) => {
   const response = await api.delete(`/attendance/${id}`);
   return response.data;
 };
+
+export const markBulkAttendance = async (payload: {
+  attendanceDate: string;
+  records: Array<{ employeeId: string; status: string; checkIn?: string; checkOut?: string }>;
+}) => {
+  const response = await api.post("/attendance/bulk", payload);
+  return response.data;
+};

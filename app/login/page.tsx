@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { ArrowRight, Eye, EyeOff, LoaderCircle, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import { loginUser } from "@/services/auth.service";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function LoginPage() {
       Cookies.set("accessToken", data.accessToken, { expires: 1, sameSite: "lax" });
       Cookies.set("refreshToken", data.refreshToken, { expires: 30, sameSite: "lax" });
       localStorage.setItem("user", JSON.stringify(data.user));
-      router.replace("/dashboard");
+      router.replace(data.user.role === "EMPLOYEE" ? "/profile" : "/dashboard");
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(message || "We could not sign you in. Check your credentials.");
@@ -74,7 +75,7 @@ export default function LoginPage() {
               <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field" placeholder="you@company.com" required />
             </div>
             <div>
-              <label className="label" htmlFor="password">Password</label>
+              <div className="flex items-center justify-between"><label className="label" htmlFor="password">Password</label><Link href="/forgot-password" className="mb-1.5 text-xs font-semibold text-primary hover:underline">Forgot password?</Link></div>
               <div className="relative">
                 <input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="field pr-11" placeholder="Enter your password" required minLength={6} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Toggle password visibility">

@@ -9,9 +9,10 @@ import { employeeSchema, type EmployeeFormValues } from "@/app/schemas/employee.
 
 type Props = {
   defaultValues?: Partial<EmployeeFormValues>;
-  onSubmit: (values: EmployeeFormValues, photo?: File) => Promise<void> | void;
+  onSubmit: (values: EmployeeFormValues, photo?: File, aadhaarDocument?: File) => Promise<void> | void;
   submitLabel?: string;
   defaultPhotoUrl?: string;
+  defaultAadhaarDocumentUrl?: string;
 };
 
 function FieldError({ message }: { message?: string }) {
@@ -22,8 +23,9 @@ function SectionHeading({ icon: Icon, title, description }: { icon: typeof UserR
   return <div className="flex gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Icon className="size-5" /></span><div><h2 className="text-lg font-bold">{title}</h2><p className="mt-0.5 text-sm text-muted-foreground">{description}</p></div></div>;
 }
 
-export default function EmployeeForm({ defaultValues, onSubmit, submitLabel = "Save employee", defaultPhotoUrl }: Props) {
+export default function EmployeeForm({ defaultValues, onSubmit, submitLabel = "Save employee", defaultPhotoUrl, defaultAadhaarDocumentUrl }: Props) {
   const [photo, setPhoto] = useState<File>();
+  const [aadhaarDocument, setAadhaarDocument] = useState<File>();
   const [photoError, setPhotoError] = useState("");
   const previewUrl = useMemo(() => photo ? URL.createObjectURL(photo) : (defaultPhotoUrl || ""), [photo, defaultPhotoUrl]);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<
@@ -65,7 +67,7 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel = "S
   };
 
   return (
-    <form onSubmit={handleSubmit((values) => onSubmit(values, photo))} className="space-y-6">
+    <form onSubmit={handleSubmit((values) => onSubmit(values, photo, aadhaarDocument))} className="space-y-6">
       <section className="glass-card p-5 sm:p-7">
         <SectionHeading icon={UserRound} title="Personal information" description="Identity and contact details for the employee." />
         <div className="mt-6 flex flex-col gap-4 rounded-2xl border bg-muted/25 p-4 sm:flex-row sm:items-center">
@@ -98,6 +100,18 @@ export default function EmployeeForm({ defaultValues, onSubmit, submitLabel = "S
           <div><label className="label" htmlFor="gender">Gender</label><select id="gender" {...register("gender")} className="field"><option value="MALE">Male</option><option value="FEMALE">Female</option><option value="OTHER">Other</option></select></div>
           <div><label className="label" htmlFor="maritalStatus">Marital status</label><select id="maritalStatus" {...register("maritalStatus")} className="field"><option value="SINGLE">Single</option><option value="MARRIED">Married</option></select></div>
           <div><label className="label" htmlFor="dateOfBirth">Date of birth <span className="text-muted-foreground">(optional)</span></label><input id="dateOfBirth" type="date" max={new Date().toISOString().split("T")[0]} {...register("dateOfBirth")} className="field" /></div>
+        </div>
+        <div className="mt-5 rounded-2xl border bg-muted/25 p-4">
+          <p className="font-semibold">Aadhaar card image</p>
+          <p className="mt-1 text-xs text-muted-foreground">Upload a readable JPG, PNG or WebP image. Access is limited to authorized HR users.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border bg-background px-3 text-xs font-semibold hover:bg-muted">
+              <ImagePlus className="size-4" /> {aadhaarDocument || defaultAadhaarDocumentUrl ? "Change Aadhaar image" : "Upload Aadhaar image"}
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => setAadhaarDocument(event.target.files?.[0])} />
+            </label>
+            {defaultAadhaarDocumentUrl && !aadhaarDocument && <a href={defaultAadhaarDocumentUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline">View current image</a>}
+            {aadhaarDocument && <span className="max-w-64 truncate text-xs text-muted-foreground">{aadhaarDocument.name}</span>}
+          </div>
         </div>
       </section>
 
